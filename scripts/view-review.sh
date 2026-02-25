@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-REVIEWS_DIR=".git/reviews"
+REVIEWS_DIR="reviews"
 
 if [ ! -d "$REVIEWS_DIR" ]; then
     echo -e "${YELLOW}⚠️  리뷰 디렉토리가 없습니다.${NC}"
