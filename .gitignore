@@ -1,0 +1,5 @@
+# Git reviews directory (이미 .git 안에 있으므로 무시할 필요 없지만, 혹시 모를 경우를 위해)
+# .git/reviews/
+
+# 리뷰 관련 임시 파일
+*.review.tmp
