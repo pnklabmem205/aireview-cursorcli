@@ -1,6 +1,8 @@
 # Cursor AI 자동 코드 리뷰 프로젝트
 
-Git push 전에 Cursor CLI Agent를 사용하여 자동으로 코드 리뷰를 수행하는 시스템입니다.
+Git 커밋/푸시 전에 Cursor CLI Agent를 사용하여 자동으로 코드 리뷰를 수행하는 시스템입니다.
+
+**권장**: Pre-commit hook 사용 (로컬에서 먼저 검증)
 
 ## 🚀 빠른 시작
 
@@ -17,32 +19,40 @@ cursor agent login
 
 ### 2. 바로 사용하기
 
+**Pre-commit Hook (권장)** - 커밋 전에 리뷰:
 ```bash
 # 코드 변경 후
 git add .
-git commit -m "변경사항"
-
-# push 시 자동으로 리뷰 실행됨
-git push origin main
+git commit -m "변경사항"  # 여기서 자동으로 리뷰 실행됨!
 ```
 
-**끝!** 이제 `git push`만 하면 자동으로 AI 리뷰가 실행됩니다.
+**Pre-push Hook** - Push 전에 리뷰:
+```bash
+git add .
+git commit -m "변경사항"
+git push origin main  # 여기서 자동으로 리뷰 실행됨
+```
+
+**끝!** 이제 `git commit` 또는 `git push`만 하면 자동으로 AI 리뷰가 실행됩니다.
 
 ## 📁 프로젝트 구조
 
 ```
 .
 ├── .git/hooks/
-│   └── pre-push              # 자동 리뷰 Git hook
+│   ├── pre-commit            # 커밋 전 자동 리뷰 (권장)
+│   └── pre-push              # Push 전 자동 리뷰
 ├── scripts/
 │   └── cursor-review.sh      # 수동 리뷰 스크립트
 ├── AI_REVIEW_SETUP.md        # 상세 설정 가이드
+├── HOOK_COMPARISON.md        # Pre-commit vs Pre-push 비교
 └── README.md                 # 이 파일
 ```
 
 ## 🔧 주요 기능
 
-- ✅ **자동 리뷰**: `git push` 시 자동으로 코드 리뷰 실행
+- ✅ **자동 리뷰**: `git commit` 또는 `git push` 시 자동으로 코드 리뷰 실행
+- ✅ **로컬 검증**: Pre-commit hook으로 커밋 전에 먼저 검증 (권장)
 - ✅ **스마트 감지**: 변경된 파일만 리뷰
 - ✅ **유연한 처리**: 리뷰 실패 시에도 강제 진행 옵션 제공
 - ✅ **수동 리뷰**: 필요 시 수동으로 리뷰 실행 가능
@@ -53,15 +63,23 @@ git push origin main
 
 ## ⚙️ 설정 비활성화
 
-리뷰를 일시적으로 비활성화하려면:
+### Pre-commit Hook 비활성화
+```bash
+mv .git/hooks/pre-commit .git/hooks/pre-commit.disabled
+```
 
+### Pre-push Hook 비활성화
 ```bash
 mv .git/hooks/pre-push .git/hooks/pre-push.disabled
 ```
 
-재활성화:
-
+### 재활성화
 ```bash
-mv .git/hooks/pre-push.disabled .git/hooks/pre-push
-chmod +x .git/hooks/pre-push
+mv .git/hooks/pre-commit.disabled .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
+
+## 📚 더 알아보기
+
+- [Pre-commit vs Pre-push 비교](./HOOK_COMPARISON.md) - 어떤 Hook을 사용할지 결정
+- [상세 설정 가이드](./AI_REVIEW_SETUP.md) - 고급 설정 및 커스터마이징
