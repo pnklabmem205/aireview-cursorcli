@@ -12,6 +12,21 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+show_spinner() {
+    local pid="$1"
+    local delay=0.1
+    local spin="|/-\\"
+    local i=0
+
+    # stderr로만 출력해서 실제 리뷰 결과(stdout)와 섞이지 않게 함
+    while kill -0 "$pid" 2>/dev/null; do
+        i=$(( (i + 1) % 4 ))
+        printf "\r${YELLOW}🤖 Cursor AI Agent가 코드를 리뷰 중입니다... %s${NC}" "${spin:$i:1}" 1>&2
+        sleep "$delay"
+    done
+    printf "\r${YELLOW}🤖 Cursor AI Agent 리뷰가 완료되었습니다.     ${NC}\n" 1>&2
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -71,7 +86,12 @@ fi
 
 echo ""
 echo -e "${YELLOW}📝 리뷰 대상: $COMPARE_TYPE${NC}"
-echo -e "${YELLOW}📝 변경된 파일:${NC}"
+
+FILE_COUNT=$(echo "$CHANGED_FILES" | sed '/^\s*$/d' | wc -l | tr -d ' ')
+DIFF_LINES=$(echo "$DIFF_CONTENT" | wc -l | tr -d ' ')
+echo -e "${YELLOW}📝 변경된 파일 수:${NC} $FILE_COUNT개"
+echo -e "${YELLOW}📝 diff 라인 수:${NC} $DIFF_LINES줄"
+echo -e "${YELLOW}📝 변경된 파일 목록:${NC}"
 echo "$CHANGED_FILES" | sed 's/^/  • /'
 echo ""
 
@@ -114,12 +134,25 @@ $(cat "$TEMP_DIFF")
 - [제안 1]
 - [제안 2]"
 
-echo -e "${YELLOW}🤖 Cursor AI Agent가 코드를 리뷰 중입니다...${NC}"
+echo -e "${YELLOW}🤖 Cursor AI Agent가 코드를 리뷰 중입니다... (진행 상황을 표시합니다)${NC}"
 echo ""
 
-# Cursor CLI Agent로 리뷰 실행
-REVIEW_OUTPUT=$(cursor agent --print --output-format text --workspace "$PROJECT_ROOT" --trust "$REVIEW_PROMPT" 2>&1)
+# Cursor CLI Agent로 리뷰 실행 (리뷰 진행 중 스피너 표시)
+TEMP_REVIEW_OUTPUT=$(mktemp)
+set +e
+cursor agent --print --output-format text --workspace "$PROJECT_ROOT" --trust "$REVIEW_PROMPT" >"$TEMP_REVIEW_OUTPUT" 2>&1 &
+CURSOR_PID=$!
+set -e
+
+show_spinner "$CURSOR_PID"
+
+set +e
+wait "$CURSOR_PID"
 REVIEW_EXIT_CODE=$?
+set -e
+
+REVIEW_OUTPUT=$(cat "$TEMP_REVIEW_OUTPUT")
+rm -f "$TEMP_REVIEW_OUTPUT"
 
 # 임시 파일 삭제
 rm -f "$TEMP_DIFF"
