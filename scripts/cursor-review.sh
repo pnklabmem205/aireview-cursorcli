@@ -15,7 +15,7 @@ NC='\033[0m'
 show_spinner() {
     local pid="$1"
     local delay=0.1
-    local spin='|/-\'
+    local spin="|/-\\"
     local i=0
 
     # stderr로만 출력해서 실제 리뷰 결과(stdout)와 섞이지 않게 함
